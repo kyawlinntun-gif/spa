@@ -19,5 +19,13 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Product
+// Get all Products
 Route::get('/product', [ProductController::class, 'index']);
+// Store the product
+Route::post('/product', [ProductController::class, 'store']);
+// Show the product
+Route::get('/product/{product}', [ProductController::class, 'show']);
+// Put or Patch the product
+Route::match(['put', 'patch'], '/product/{product}', [ProductController::class, 'update']);
+// Delete the product
+Route::delete('product/{product}', [ProductController::class, 'destroy']);
