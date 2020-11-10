@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProductStoreRequest;
+use App\Http\Requests\ProductUpdateRequest;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -24,18 +26,8 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ProductStoreRequest $request)
     {
-        // Validate the request
-        $request->validate([
-            'name' => 'required|string',
-            'price' => 'required|numeric'
-        ],[
-            'name.required' => 'အမည် ထည့်ရန် လိုအပ်သည်။',
-            'name.string' => 'အမည်သည် စာသား ဖြစ်ရမည်။',
-            'price.required' => 'ပိုက်ဆံ ထည့်ရန် လိုအပ်သည်။',
-            'price.numeric' => 'ပိုက်ဆံသည် ဂဏန်း ဖြစ်ရမည်။'
-        ]);
         // Store the product
         $product = Product::create(['name' => $request->name, 'price' => $request->price]);
 
@@ -61,16 +53,8 @@ class ProductController extends Controller
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Product $product)
+    public function update(ProductUpdateRequest $request, Product $product)
     {
-        // Validate the request
-        $request->validate([
-            'name' => 'nullable|string',
-            'price' => 'nullable|numeric'
-        ],[
-            'name.string' => 'အမည်သည် စာသား ဖြစ်ရမည်။',
-            'price.numeric' => 'ပိုက်ဆံသည် ဂဏန်း ဖြစ်ရမည်။'
-        ]);
         // Update the product
         $product->update(['name' => $request->name, 'price' => $request->price]);
         return $product;
