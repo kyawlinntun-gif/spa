@@ -2,7 +2,7 @@
     <div class="container mt-5">
         <div class="row d-flex justify-content-end mb-3">
             <div class="col-5">
-                <button class="btn btn-primary"><i class="fas fa-plus-circle mr-1"></i>Create</button>
+                <button class="btn btn-primary" @click.prevent="create()"><i class="fas fa-plus-circle mr-1"></i>Create</button>
             </div>
             <div class="col-3">
                 <form action="">
@@ -18,18 +18,20 @@
             <div class="col-4">
                 <div class="card">
                     <div class="card-header">
-                        <h1 class="mb-0">Create</h1>
+                        <h1 class="mb-0">{{ isEditMode ? 'Edit' : 'Create' }}</h1>
                     </div>
                     <div class="card-body">
-                        <div class="form-group">
-                            <label for="name">Name:</label>
-                            <input type="text" class="form-control" name="name" id="name">
-                        </div>
-                        <div class="form-group">
-                            <label for="price">Price:</label>
-                            <input type="text" class="form-control" name="price" id="price">
-                        </div>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i>Save</button>
+                        <form @submit.prevent="insertData()">
+                            <div class="form-group">
+                                <label for="name">Name:</label>
+                                <input type="text" class="form-control" name="name" id="name" v-model="form.name" placeholder="e.g. Item">
+                            </div>
+                            <div class="form-group">
+                                <label for="price">Price:</label>
+                                <input type="number" class="form-control" name="price" id="price" v-model="form.price" placeholder="0">
+                            </div>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i>{{ isEditMode ? 'Update' : 'Save' }}</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -49,8 +51,8 @@
                             <td>{{ data.name }}</td>
                             <td>{{ data.price }}</td>
                             <td>
-                                <button class="btn btn-success btn-sm"><i class="fas fa-edit mr-1"></i>Edit</button>
-                                <button class="btn btn-danger btn-sm"><i class="fas fa-trash-alt mr-1"></i>Delete</button>
+                                <button class="btn btn-success btn-sm" @click.prevent="editData(data)"><i class="fas fa-edit mr-1"></i>Edit</button>
+                                <button class="btn btn-danger btn-sm" @click.prevent="deleteData(data.id)"><i class="fas fa-trash-alt mr-1"></i>Delete</button>
                             </td>
                         </tr>
                     </tbody>
@@ -61,18 +63,40 @@
 </template>
 
 <script>
+    // Import the EventBus we just created.
+    import { EventBus } from '../event-bus.js';
+
     class Form {
-        constructor()
+        constructor(item)
         {
+            this.originalItem = item;
+
+            for (let field in item)
+            {
+                this[field] = item[field];
+            }
+
             this.data = new Data;
+        }
+
+        item()
+        {
+            let item = {};
+
+            for (let field in this.originalItem)
+            {
+                item[field] = this[field];
+            }
+
+            return item;
         }
 
         get(url)
         {
-            this.submit('get', url);
+            return this.getSubmit('get', url);
         }
 
-        submit(requestType, url)
+        getSubmit(requestType, url)
         {
             return new Promise((resolve, reject) => {
                 axios[requestType](url)
@@ -86,6 +110,65 @@
                 });
             });
         }
+
+        post(url)
+        {
+            return this.insertSubmit('post', url);
+        }
+
+        insertSubmit(requestType, url)
+        {
+            return new Promise((resolve, reject) => {
+                axios[requestType](url, this.item())
+                .then(response => {
+
+                    // EventBus.$emit('get-data');
+
+                    this.reset();
+
+                    this.get('/api/product');
+
+                    resolve(response.data);
+                })
+                .catch(errors => {
+
+                    reject(errors.response.data);
+                });
+            });
+        }
+
+        put(url)
+        {
+            return this.insertSubmit('put', url);
+        }
+
+        delete(url)
+        {
+            return this.destroy('delete',url);
+        }
+
+        destroy(requestType, url)
+        {
+            return new Promise((resolve, reject) => {
+                axios[requestType](url)
+                .then(response => {
+                    this.get('/api/product');
+                    resolve(response.data);
+                })
+                .catch(errors => {
+                    reject(errors.response.data);
+                });
+            });
+        }
+
+        reset()
+        {
+            for (let field in this.originalItem)
+            {
+                this[field] = '';
+            }
+        }
+
     }
 
     class Data {
@@ -107,7 +190,12 @@
     export default {
         data() {
             return {
-                form: new Form
+                form: new Form({
+                    id: '',
+                    name: '',
+                    price: ''
+                }),
+                isEditMode: false
             }
         },
 
@@ -115,11 +203,55 @@
             getData()
             {
                 this.form.get('/api/product');
-            }  
+            },
+
+            insertData()
+            {
+                if(!this.isEditMode)
+                {
+                    this.form.post('/api/product');
+                    return;
+                }
+
+                this.form.put(`/api/product/${this.form.id}`)
+                .then(response => this.isEditMode = false);
+                
+            },
+
+            editData(product)
+            {
+                this.isEditMode = true;
+                this.form.id = product.id;
+                this.form.name = product.name;
+                this.form.price = product.price;
+            },
+
+            create()
+            {
+                this.isEditMode = false;
+                this.form.id = '';
+                this.form.name = '';
+                this.form.price = '';
+            },
+
+            deleteData(productId)
+            {
+                let checkConfirm = confirm('Are you sure?');
+                if(checkConfirm)
+                {
+                    this.form.delete(`/api/product/${productId}`);
+                }
+            }
+
         },
         
         created() {
             this.getData();
+        },
+
+        mounted()
+        {
+            // EventBus.$on('get-data', this.getData());
         }
     }
 
