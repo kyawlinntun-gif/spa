@@ -1,20 +1,29 @@
 <template>
     <div class="container mt-5">
         <div class="row d-flex justify-content-end mb-3">
+
+            <!-- start of create -->
             <div class="col-5">
                 <button class="btn btn-primary" @click.prevent="create()"><i class="fas fa-plus-circle mr-1"></i>Create</button>
             </div>
+            <!-- end of create -->
+
+            <!-- start of search -->
             <div class="col-3">
-                <form action="">
+                <form @submit.prevent="getData">
                     <div class="input-group">
-                        <input type="text" placeholder="search" class="form-control">
+                        <input type="text" placeholder="search" class="form-control" v-model="search">
                         <div class="input-group-append"><button type="submit" class="btn btn-primary"><i
                                     class="fas fa-search"></i></button></div>
                     </div>
                 </form>
             </div>
+            <!-- end of search -->
+
         </div>
         <div class="row">
+
+            <!-- start of form -->
             <div class="col-4">
                 <div class="card">
                     <div class="card-header">
@@ -35,6 +44,9 @@
                     </div>
                 </div>
             </div>
+            <!-- end of form -->
+
+            <!-- start of table -->
             <div class="col-8">
                 <table class="table table-striped" v-if="form.data.any()">
                     <thead>
@@ -57,7 +69,14 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <!-- start of pagination -->
+                <pagination :data="pagination" @pagination-change-page="getData"></pagination>
+                <!-- end of pagination -->
+
             </div>
+            <!-- end of table -->
+
         </div>
     </div>
 </template>
@@ -101,7 +120,7 @@
             return new Promise((resolve, reject) => {
                 axios[requestType](url)
                 .then(response => {
-                    this.data.get(response.data);
+                    this.data.get(response.data.data);
                     resolve(response.data);
                 })
                 .catch(errors => {
@@ -195,14 +214,17 @@
                     name: '',
                     price: ''
                 }),
-                isEditMode: false
+                isEditMode: false,
+                pagination: {},
+                search: ''
             }
         },
 
         methods: {
-            getData()
+            getData(page=1)
             {
-                this.form.get('/api/product');
+                this.form.get(`/api/product?page=${page}&search=${this.search}`)
+                .then(data => this.pagination = data);
             },
 
             insertData()

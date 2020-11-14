@@ -25,6 +25,7 @@
         "webpack-cli": "^4.2.0"
     },
     "dependencies": {
-        "@fortawesome/fontawesome-free": "^5.15.1"
+        "@fortawesome/fontawesome-free": "^5.15.1",
+        "laravel-vue-pagination": "^2.3.1"
     }
 }

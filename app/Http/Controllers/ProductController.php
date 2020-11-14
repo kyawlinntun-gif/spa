@@ -16,8 +16,9 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $product = Product::orderBy('id', 'desc')->get();
-        return $product;
+        return Product::when(request('search'), function($query){
+            $query->where('name', 'like', '%' . request('search') . '%');
+        })->orderBy('id', 'desc')->paginate(5);
     }
 
     /**
