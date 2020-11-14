@@ -30,14 +30,18 @@
                         <h1 class="mb-0">{{ isEditMode ? 'Edit' : 'Create' }}</h1>
                     </div>
                     <div class="card-body">
-                        <form @submit.prevent="insertData()">
+                        <div class="alert alert-danger" v-if="form.errors.hasMessage()" v-text="form.errors.getMessage()"></div>
+                        <form @submit.prevent="insertData()" @keydown="
+                        form.errors.clear($event.target.name)">
                             <div class="form-group">
                                 <label for="name">Name:</label>
-                                <input type="text" class="form-control" name="name" id="name" v-model="form.name" placeholder="e.g. Item">
+                                <input type="text" class="form-control" :class="{'is-invalid' : form.errors.has('name')}" name="name" id="name" v-model="form.name" placeholder="e.g. Item">
+                                <div class="text-small text-danger" v-if="form.errors.has('name')" v-text="form.errors.get('name')"></div>
                             </div>
                             <div class="form-group">
                                 <label for="price">Price:</label>
-                                <input type="number" class="form-control" name="price" id="price" v-model="form.price" placeholder="0">
+                                <input type="number" class="form-control" :class="{'is-invalid' : form.errors.has('price')}" name="price" id="price" v-model="form.price" placeholder="0">
+                                <div class="text-small text-danger" v-if="form.errors.has('price')" v-text="form.errors.get('price')"></div>
                             </div>
                             <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i>{{ isEditMode ? 'Update' : 'Save' }}</button>
                         </form>
@@ -95,7 +99,11 @@
                 this[field] = item[field];
             }
 
+            // Data
             this.data = new Data;
+
+            // Error
+            this.errors = new Errors;
         }
 
         item()
@@ -120,6 +128,7 @@
             return new Promise((resolve, reject) => {
                 axios[requestType](url)
                 .then(response => {
+                    
                     this.data.get(response.data.data);
                     resolve(response.data);
                 })
@@ -150,6 +159,9 @@
                     resolve(response.data);
                 })
                 .catch(errors => {
+
+                    this.errors.recordMessage(errors.response.data.message);
+                    this.errors.record(errors.response.data.errors);
 
                     reject(errors.response.data);
                 });
@@ -206,6 +218,68 @@
         }
     }
 
+    class Errors {
+        constructor()
+        {
+            this.errors = {};
+            this.message = '';
+        }
+
+        record(errors)
+        {
+            this.errors = errors;
+        }
+
+        get(field)
+        {
+            if(this.errors[field])
+            {
+                return this.errors[field][0];
+            }
+        }
+
+        has(field)
+        {
+            return this.errors.hasOwnProperty(field);
+        }
+
+        clear(field)
+        {
+            if(field)
+            {
+                delete this.errors[field];
+                
+                // this.message = '';
+
+                if(Object.keys(this.errors).length <= 0)
+                {
+                    this.message = '';
+                }
+
+                return;
+            }
+
+            this.errors = {};
+            this.message = '';
+        }
+
+        recordMessage(data)
+        {
+            this.message = data;
+        }
+
+        hasMessage()
+        {
+            return this.message;
+        }
+
+        getMessage()
+        {
+            return this.message;
+        }
+
+    }
+
     export default {
         data() {
             return {
@@ -231,7 +305,9 @@
             {
                 if(!this.isEditMode)
                 {
-                    this.form.post('/api/product');
+                    this.form.post('/api/product')
+                    .then()
+                    .catch(data => console.log(data));
                     return;
                 }
 
@@ -246,6 +322,7 @@
                 this.form.id = product.id;
                 this.form.name = product.name;
                 this.form.price = product.price;
+                this.form.errors.clear();
             },
 
             create()
@@ -254,6 +331,7 @@
                 this.form.id = '';
                 this.form.name = '';
                 this.form.price = '';
+                this.form.errors.clear();
             },
 
             deleteData(productId)
