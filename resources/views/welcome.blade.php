@@ -13,6 +13,9 @@
 
     <div id="app">
         <product-component></product-component>
+
+        <!-- set progressbar -->
+        <vue-progress-bar></vue-progress-bar>
     </div>
 
     {{-- app js --}}
