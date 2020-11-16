@@ -13,4 +13,7 @@
 @import "@fortawesome/fontawesome-free/scss/brands.scss";
 
 // Sweetalert css
-@import '~sweetalert2/src/sweetalert2.scss'
+@import '~sweetalert2/src/sweetalert2.scss';
+
+// Import stylesheet
+@import '~vue-loading-overlay/dist/vue-loading.css';

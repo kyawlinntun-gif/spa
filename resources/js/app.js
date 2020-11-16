@@ -29,8 +29,16 @@ Vue.use(VueProgressBar, {
   color: 'rgb(143, 255, 199)',
   failedColor: 'red',
   height: '4px'
-})
+});
 
+// Import component
+import Loading from 'vue-loading-overlay';
+
+// Init plugin
+Vue.use(Loading, {
+  width: 50,
+  height: 50
+});
 
 const app = new Vue({
     el: '#app',

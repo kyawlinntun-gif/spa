@@ -283,24 +283,37 @@
 
         methods: {
             getData(page = 1) {
+
+                let loader = this.$loading.show();
+
                 this.$Progress.start();
                 this.form.get(`/api/product?page=${page}&search=${this.search}`)
                     .then(data => {
+
+                        loader.hide();
+                        
                         this.$Progress.finish();
                         this.pagination = data;
                     })
                     .catch(data => {
+
+                        loader.hide();
+
                         this.$Progress.end();
                     });
             },
 
             insertData() {
 
+                let loader = this.$loading.show();
+
                 this.$Progress.start();
 
                 if (!this.isEditMode) {
                     this.form.post('/api/product')
                         .then(data => {
+
+                            loader.hide();
 
                             this.$Progress.finish();
 
@@ -311,6 +324,8 @@
                         })
                         .catch(data => {
 
+                            loader.hide();
+
                             this.$Progress.fail();
 
                         });
@@ -319,6 +334,8 @@
 
                 this.form.put(`/api/product/${this.form.id}`)
                     .then(data => {
+
+                        loader.hide();
 
                         this.$Progress.finish();
 
@@ -329,6 +346,8 @@
                         });
                     })
                     .catch(data => {
+
+                        loader.hide();
 
                         this.$Progress.fail();
 
@@ -364,7 +383,12 @@
                     cancelButtonColor: '#d33',
                     confirmButtonText: 'Delete'
                 }).then((result) => {
+
                     if (result.isConfirmed) {
+
+                        let loader = this.$loading.show();
+
+                        loader.hide();
 
                         this.$Progress.finish();
 
@@ -382,6 +406,8 @@
                     }
                 })
                 .catch(errors => {
+
+                    loader.hide();
 
                     this.$Progress.fail();
                 });

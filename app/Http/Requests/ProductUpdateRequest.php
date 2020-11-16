@@ -25,7 +25,7 @@ class ProductUpdateRequest extends FormRequest
     {
         return [
             'name' => 'required|string',
-            'price' => 'required|numeric'
+            'price' => 'required|numeric|between:0,99999999.99'
         ];
     }
 
@@ -33,7 +33,8 @@ class ProductUpdateRequest extends FormRequest
     {
         return [
             'name.string' => 'အမည်သည် စာသား ဖြစ်ရမည်။',
-            'price.numeric' => 'ပိုက်ဆံသည် ဂဏန်း ဖြစ်ရမည်။'
+            'price.numeric' => 'ပိုက်ဆံသည် ဂဏန်း ဖြစ်ရမည်။',
+            'price.between' => 'ပိုက်ဆံသည် သိန်းတစ်ရာထက် မပိုရပါ။'
         ];
     }
 }
